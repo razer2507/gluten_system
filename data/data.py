@@ -1,7 +1,11 @@
 import sqlite3
-
+MODO_DEV = 0
+if MODO_DEV ==1:
+    nombre_db = 'gluten_pruebas.db'
+if MODO_DEV == 0:
+    nombre_db = 'gluten_real.db'
 class db():
-    def __init__(self,directorio='gluten.db'):
+    def __init__(self,directorio=nombre_db):
         self.conn = sqlite3.connect(directorio)
         self.cursor = self.conn.cursor()
         self.iniciar_db()
@@ -163,7 +167,10 @@ class db():
                             INNER JOIN 
                                 clientes
                             ON 
-                                cliente_id = clientes.id''')
+                                cliente_id = clientes.id
+                            ORDER BY fecha DESC
+                            ''')
+            
         return self.cursor.fetchall()
 
     def eliminar_venta(self, venta_id: int):
@@ -181,6 +188,23 @@ class db():
         SELECT SUM(total) as total FROM ventas
         ''')
         return self.cursor.fetchone()
+
+    def obtener_ventas_en_deuda_nombres(self):
+        self.cursor.execute('''
+        SELECT ventas.fecha,clientes.nombre,ventas.total
+        FROM ventas
+        INNER JOIN clientes
+        on cliente_id = clientes.id
+        WHERE estado ='en deuda'
+        ''')
+        return self.cursor.fetchall()
+
+    def obtener_ventas_en_deuda_ids(self):
+        self.cursor.execute('''
+        SELECT *FROM ventas
+        WHERE estado = 'en deuda'
+        ''')
+        return self.cursor.fetchall()
 
     # --- CRUD DETALLE_VENTAS ---
     def insertar_detalle_venta(self, data: tuple):

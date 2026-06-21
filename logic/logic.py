@@ -101,9 +101,9 @@ class Logica:
         return True,'Exito',id_retornado
 
     def obtener_data_venta(self,venta:Venta):
-        if not self.obtener_data_venta(venta.id):
+        if not self.bd.obtener_data_venta(venta.id):
             return False,'La venta no existe'
-        return self.obtener_data_venta(venta.id),'Exito'
+        return self.bd.obtener_data_venta(venta.id),'Exito'
 
     def obtener_todas_ventas(self):
         return self.bd.obtener_ventas()
@@ -131,8 +131,24 @@ class Logica:
             return suma_ventas
         else:
             return 0 
-
+            
+    def obtener_ventas_en_deuda_nombres(self):
+        ventas_en_deuda = self.bd.obtener_ventas_en_deuda_nombres()
+        if ventas_en_deuda:
+            return ventas_en_deuda
+        else:
+            print("NO HAY VENTAS")
+            return False
+            input("")
     
+    def obtener_ventas_en_deuda_ids(self):
+        ventas_en_deuda = self.bd.obtener_ventas_en_deuda_ids()
+        if ventas_en_deuda:
+            return ventas_en_deuda
+        else:
+            print("NO HAY VENTAS")
+            return False
+            input("")
 
     #CRUD:detalle_ventas
     def insertar_detalle_venta(self,detalle_venta:DetalleVentas):
@@ -148,7 +164,7 @@ class Logica:
             return False,'El detalle_venta no existe'
         return self.bd.obtener_data_detalles_venta(detalle_venta.venta_id),'Exito'
 
-    def actualizar_venta(self,detalle_venta:DetalleVentas):
+    def actualizar_detalle_venta(self,detalle_venta:DetalleVentas):
         if not self.bd.obtener_data_detalles_venta(detalle_venta.venta_id):
             return False,'El detalle_venta no existe'
         if not self.validar_numero(detalle_venta.precio_unitario):

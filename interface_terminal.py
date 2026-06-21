@@ -45,8 +45,8 @@ class TerminalInterface():
 |   GLUTEN FULL SYSTEM 1.0 TERMINAL |
 #####################################''')
 
-                print(f'''1-Registrar Productos\n2-Registrar Clientes\n3-Registrar Deudas\n4-Registrar Ventas\n5-Ver Ventas\n0-Salir\n{'='*38}''')
-                print(f'VENTAS:{int(ventas_totales)}$\nGASTOS:{int(gastos_totales)}$\nBALANCE:{int(balance)}$\n')
+                print(f'''1-Registrar Productos\n2-Registrar Clientes\n3-Administar-Deudas\n4-Registrar Ventas\n5-Ver Ventas\n0-Salir\n{'='*38}''')
+                print(f'VENTAS:{int(ventas_totales)}$')
                 op = int(input("Escriba una opcion-->\n"))
                 
                 if op == 0:
@@ -70,6 +70,8 @@ class TerminalInterface():
                         self.registrar_productos()
                     case 2:
                         self.registrar_clientes()
+                    case 3:
+                        self.administar_deudas()
                     case 4:
                         self.registrar_venta()
                     case 5:
@@ -141,12 +143,46 @@ class TerminalInterface():
 
         presione_enter_para_continuar()
 
+    def administar_deudas(self):
+            while True:
+                clear()
+                carga_programa()
+                print("1. Levantar deudas")
+                print('2. Recobrar deudas')
+                opcion = int(input("Opcion:"))
+                match opcion:
+                    case 1:
+                        self.levantar_deudas()
+                        break
+                    case 2:
+                        #TODO: falta anadir esto
+                        pass
+                    case _:
+                        print("Invalido")
+
+    def ver_ventas(self):
+        clear()
+        carga_programa()
+        ventas = self.reglas.obtener_todas_ventas()
+        # 📏 Definimos los anchos fijos para cada columna
+        # <20 significa: alineado a la izquierda, ocupando exactamente 20 caracteres.
+        # >10 significa: alineado a la derecha (ideal para números), ocupando 10 caracteres.
+        formato = "{:<20} | {:<20} | {:>10} | {:>10}"
+    
+        print("-" * 82)  # Una línea decorativa superior
+        # Imprimimos el encabezado usando el molde de formato
+        print(formato.format('NOMBRE', 'REFERENCIA', 'TOTAL','FECHA'))
+        print("-" * 82)  # Línea separadora
+    
+        # Imprimimos cada fila usando exactamente el mismo molde
+        for venta in ventas:
+            print(formato.format(str(venta[0]), str(venta[1]), f"{venta[2]:.2f}",str(venta[3])))
+        
+        print("-" * 82)
+        presione_enter_para_continuar()
 
 
-
-
-
-    #FUNCIONES AUX:FIXME
+   
     def elegir_referencia(self):
         while True:
             clear()
@@ -296,7 +332,6 @@ class TerminalInterface():
         total = 0
         for producto,detalle in ticket.items():
             total += ticket[producto]['cantidad'] * ticket[producto]['precio_unitario']
-        print(total)
         return total
 
     def imprimir_ticket(self,ticket:dict):
@@ -319,15 +354,45 @@ class TerminalInterface():
             estados = self.reglas.obtener_estados_de_pago()
             for index,estado in enumerate(estados,start=1):
                 print(f'{index}. {estado[0]}')
-            opcion = int(input("Escriba una opcion\n:"))
+            opcion = int(input("Escriba una opcion\n:"))-1
             if opcion in range(len(estados)):
                 return estados[opcion][0]
             else:
                 print('Invalido')
                 presione_enter_para_continuar()
                 continue
-        
 
+    def levantar_deudas(self):
+        #TODO;:
+        clear()
+        carga_programa()
+        #El usuario ve las ventas con nombres de clientes
+        #El sistema lo ve con Id's
+        while True:
+            ventas_en_deuda_usuario = self.reglas.obtener_ventas_en_deuda_nombres()
+            ventas_en_deuda_sistema = self.reglas.obtener_ventas_en_deuda_ids()
+            for index,venta in enumerate(ventas_en_deuda_usuario,start=1):
+                print(f'{index} . {venta}')
+            opcion = int(input("Opcion:"))-1
+
+            if opcion in range(len(ventas_en_deuda_sistema)):
+                clear()
+                
+                presione_enter_para_continuar()
+                venta = Venta.desde_tupla(ventas_en_deuda_sistema[opcion])
+                venta.estado = self.elegir_estado()
+                print(ventas_en_deuda_sistema)
+                venta.imprimir_venta()
+                resultado,mensaje = self.reglas.actualizar_venta(venta)
+                print(mensaje)
+                presione_enter_para_continuar()
+                break
+            else:
+                clear()
+                print('Invalido')
+                presione_enter_para_continuar()
+                continue
+                
 mibd = db()
 milogica = Logica(mibd)
 miapp_terminal = TerminalInterface(milogica)
