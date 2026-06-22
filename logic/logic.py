@@ -1,9 +1,12 @@
 from data.data import db
 from logic.models import Cliente,Producto,Venta,DetalleVentas,Gastos
+from ml.IA import MachineLearing
+from datetime import datetime
 class Logica:
-    def __init__(self,bd:db):
+    def __init__(self,bd:db,AI:MachineLearing):
         self.bd = bd
-    
+        self.AI = AI
+        self.entrenar_prediccion_mes()
 
     #Metodos de validacion
     def validar_texto(self,texto):
@@ -28,7 +31,25 @@ class Logica:
         if not isinstance(numero,int):
             return False
         return True
+
+    def es_festivo(self,mes):
+        festivos = [11,12]
+        if mes in festivos:
+            return 1
+        else:
+            return 0
+
+    def obtener_mes_actual(self):
+        return datetime.today().month
     
+    def entrenar_prediccion_mes(self):
+        data = self.bd.obtener_venta_agrupada_por_mes()
+        if data:
+            self.AI.entrenar_linear_regression_mes(data)
+        else:
+            print('no hay data')
+
+
     #CRUD:Clientes
     def insertar_cliente(self,cliente:Cliente):
         if not self.validar_texto(cliente.nombre):
@@ -149,6 +170,24 @@ class Logica:
             print("NO HAY VENTAS")
             return False
             input("")
+
+    def obtener_prediccion_ventas_mes_actual(self):
+        mes_actual = self.obtener_mes_actual()
+        es_festivo = self.es_festivo(mes_actual)
+        predict = self.AI.predecir_linear_regression_mes(
+            mes=mes_actual,
+            es_festivo = es_festivo
+        )
+        return predict
+
+    def obtener_ventas_mes_actual(self):
+        datos = self.bd.obtener_ventas_mes_actual()
+        if datos:
+            return datos[0]
+        else:
+            return 0
+    
+            
 
     #CRUD:detalle_ventas
     def insertar_detalle_venta(self,detalle_venta:DetalleVentas):

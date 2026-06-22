@@ -1,5 +1,5 @@
 import sqlite3
-MODO_DEV = 0
+MODO_DEV = 1
 if MODO_DEV ==1:
     nombre_db = 'gluten_pruebas.db'
 if MODO_DEV == 0:
@@ -205,6 +205,26 @@ class db():
         WHERE estado = 'en deuda'
         ''')
         return self.cursor.fetchall()
+
+    def obtener_venta_agrupada_por_mes(self):
+        self.cursor.execute('''
+        SELECT
+            strftime('%m',fecha) ,
+            SUM(total)
+        FROM
+            ventas
+        GROUP BY
+            strftime('%m',fecha)
+        ''')
+        return self.cursor.fetchall()
+
+    def obtener_ventas_mes_actual(self):
+        self.cursor.execute('''
+        SELECT SUM(total)
+        FROM ventas
+        WHERE strftime('%Y-%m', FECHA) = strftime('%Y-%m', 'now');
+        ''')
+        return self.cursor.fetchone()
 
     # --- CRUD DETALLE_VENTAS ---
     def insertar_detalle_venta(self, data: tuple):

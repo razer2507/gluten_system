@@ -5,6 +5,7 @@ import sys
 import time
 import os 
 from datetime import datetime
+from ml.IA import MachineLearing
 
 fecha_actual = datetime.now().strftime("%Y-%m-%d")
 
@@ -30,7 +31,6 @@ def presione_enter_para_continuar():
 class TerminalInterface():
     def __init__(self,reglas:Logica):
         self.reglas = reglas
-        self.reglas = reglas
         self.menu_principal()
     
     def menu_principal(self):
@@ -38,15 +38,21 @@ class TerminalInterface():
             ventas_totales = self.reglas.obtener_suma_ventas()
             gastos_totales = self.reglas.obtener_suma_gastos()
             balance = (ventas_totales-gastos_totales)
+            mes_actual = datetime.today().month
+            prediccion = self.reglas.obtener_prediccion_ventas_mes_actual()
+            ventas_actuales = self.reglas.obtener_ventas_mes_actual()
             clear()
             try:
                 print('''
 #####################################
 |   GLUTEN FULL SYSTEM 1.0 TERMINAL |
 #####################################''')
-
+                print(f"FECHA:{datetime.today().strftime('%d/%m/%Y')}")
+                print('#####################################')
                 print(f'''1-Registrar Productos\n2-Registrar Clientes\n3-Administar-Deudas\n4-Registrar Ventas\n5-Ver Ventas\n0-Salir\n{'='*38}''')
-                print(f'VENTAS:{int(ventas_totales)}$')
+                print(f'VENTAS DEL MES ACTUAL:{int(ventas_actuales)}$')
+                print(f'PROYECCION MENSUAL DE VENTAS:{int(prediccion)}$')
+                
                 op = int(input("Escriba una opcion-->\n"))
                 
                 if op == 0:
@@ -392,7 +398,8 @@ class TerminalInterface():
                 print('Invalido')
                 presione_enter_para_continuar()
                 continue
-                
+
+machineLearn = MachineLearing()
 mibd = db()
-milogica = Logica(mibd)
+milogica = Logica(mibd,machineLearn)
 miapp_terminal = TerminalInterface(milogica)
