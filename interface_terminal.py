@@ -35,14 +35,15 @@ class TerminalInterface():
     
     def menu_principal(self):
         while True:
-            ventas_totales = self.reglas.obtener_suma_ventas()
-            gastos_totales = self.reglas.obtener_suma_gastos()
-            balance = (ventas_totales-gastos_totales)
             mes_actual = datetime.today().month
             prediccion = self.reglas.obtener_prediccion_ventas_mes_actual()
-            ventas_actuales = self.reglas.obtener_ventas_mes_actual()
-            clear()
+            ventas_actuales_mes = self.reglas.obtener_ventas_mes_actual_total()[0]
+            deudas_totales_mes = self.reglas.obtener_ventas_en_deuda_mes_actual_total()[0][0]
+            gananacia_real = (ventas_actuales_mes-deudas_totales_mes)
+            porcentaje_deudas_mes = (deudas_totales_mes/ventas_actuales_mes)*100
             try:
+                clear()
+                carga_programa()
                 print('''
 #####################################
 |   GLUTEN FULL SYSTEM 1.0 TERMINAL |
@@ -50,8 +51,11 @@ class TerminalInterface():
                 print(f"FECHA:{datetime.today().strftime('%d/%m/%Y')}")
                 print('#####################################')
                 print(f'''1-Registrar Productos\n2-Registrar Clientes\n3-Administar-Deudas\n4-Registrar Ventas\n5-Ver Ventas\n0-Salir\n{'='*38}''')
-                print(f'VENTAS DEL MES ACTUAL:{int(ventas_actuales)}$')
-                print(f'PROYECCION MENSUAL DE VENTAS:{int(prediccion)}$')
+                print(f'VENTAS DEL MES ACTUAL:{(ventas_actuales_mes)}$')
+                print(f'DEUDAS DEL MES ACTUAL:{(deudas_totales_mes)}$({int(porcentaje_deudas_mes)}%)')
+                print(f'GANANCIA MENSUAL REAL: {int(gananacia_real)}$')
+                print(f'PROYECCION MENSUAL DE VENTAS POR IA:{int(prediccion)}$')
+                print("="*38)
                 
                 op = int(input("Escriba una opcion-->\n"))
                 
@@ -59,14 +63,15 @@ class TerminalInterface():
                     clear()
                     print("Saliendo...")
                     break
+                
                 if op in range(0,6):
                     self.elegir_opcion(op)
 
             except ValueError as e:
-                print(e)
+                print("Opcion de menu no valida.")
             except KeyboardInterrupt:
                 clear()
-                print("Volviendo al menu principal")
+                print("Volviendo al menu principal.")
                 presione_enter_para_continuar()
 
             
@@ -89,13 +94,17 @@ class TerminalInterface():
         try:
             clear()
             carga_programa()
+
             nombre_producto = input("Escriba el nombre del producto\n:")
             precio_costo = float(input("Escriba el precio costo\n:"))
             categoria = self.elegir_categoria()
+
             producto_creado = Producto(nombre_producto,precio_costo,categoria)
             resultado,mensaje = self.reglas.insertar_producto(producto_creado)
+
             print(mensaje)
             presione_enter_para_continuar()
+
         except ValueError:
             print("Datos invalidos")
             presione_enter_para_continuar
@@ -104,16 +113,20 @@ class TerminalInterface():
     def registrar_clientes(self):
         clear()
         carga_programa()
+
         nombre_cliente = input("Escriba el nombre del ciente\n:")
         referencia = self.elegir_referencia()
+
         cliente_creado = Cliente(nombre_cliente,referencia)
         resultado,mensaje = self.reglas.insertar_cliente(cliente_creado)
+
         print(mensaje)
         presione_enter_para_continuar()
 
     def registrar_venta(self):
         clear()
         carga_programa()
+
         fecha = self.elegir_fecha()
         cliente = self.elegir_cliente()
         cliente_id = cliente[0]
@@ -123,17 +136,19 @@ class TerminalInterface():
         estado = self.elegir_estado()
 
         clear()
+
         print(f"CLIENTE:{cliente_nombre}")
         self.imprimir_ticket(ticket_venta)
         presione_enter_para_continuar()
+
         venta = Venta(
             fecha=fecha,
             cliente_id=cliente_id,
             total=total,
             estado=estado
-
         )
         resultado1,mensaje1,id_retornado = self.reglas.insertar_venta(venta)
+
         if resultado1 == True:
             for id_producto,detalle in ticket_venta.items():
                 detalle = DetalleVentas(
@@ -142,8 +157,9 @@ class TerminalInterface():
                     cantidad=ticket_venta[id_producto]['cantidad'],
                     precio_unitario=ticket_venta[id_producto]['precio_unitario']
                 )
+
                 resultado2,mensaje2 = self.reglas.insertar_detalle_venta(detalle)
-                print(mensaje2)
+                print(f'La venta de {ticket_venta['nombre']}mensaje2')
         else:
             print(mensaje1)
 
@@ -153,23 +169,27 @@ class TerminalInterface():
             while True:
                 clear()
                 carga_programa()
-                print("1. Levantar deudas")
-                print('2. Recobrar deudas')
+                print("1. Cambiar estado de venta")
                 opcion = int(input("Opcion:"))
                 match opcion:
                     case 1:
                         self.levantar_deudas()
                         break
-                    case 2:
-                        #TODO: falta anadir esto
-                        pass
                     case _:
                         print("Invalido")
 
     def ver_ventas(self):
         clear()
         carga_programa()
-        ventas = self.reglas.obtener_todas_ventas()
+        confirmacion_ventas = self.reglas.obtener_ventas_globales_con_nombre()[0]
+
+        if confirmacion_ventas == False:
+            print("No hay ventas")
+            presione_enter_para_continuar()
+        
+        ventas = self.reglas.obtener_ventas_globales_con_nombre()[0]
+
+        
         # 📏 Definimos los anchos fijos para cada columna
         # <20 significa: alineado a la izquierda, ocupando exactamente 20 caracteres.
         # >10 significa: alineado a la derecha (ideal para números), ocupando 10 caracteres.
@@ -194,7 +214,7 @@ class TerminalInterface():
             clear()
             carga_programa()
             print("Referencia a elegir")
-            referencias = self.reglas.obtener_referencias()
+            referencias = self.reglas.obtener_referencias_globales()
 
             for index,referencia in enumerate(referencias,start=1):
                 print(f'{index}. {referencia[0]}')
@@ -211,7 +231,7 @@ class TerminalInterface():
             clear()
             carga_programa()
             print("Categoria a elegir")
-            categorias = self.reglas.obtener_categorias()
+            categorias = self.reglas.obtener_categorias_globales()
 
             for index,categoria in enumerate(categorias,start=1):
                 print(f'{index}. {categoria[0]}')
@@ -264,14 +284,22 @@ class TerminalInterface():
     def elegir_cliente(self):
         clear()
         carga_programa()
-        clientes = self.reglas.obtener_todos_clientes()
+        confirmacion_clientes = self.reglas.obtener_clientes_globales()[0]
+
+        if confirmacion_clientes == False:
+            print('No hay clientes, PRESIONE CTRL+C para salir')
+            time.sleep(100000)
+
+        clientes = self.reglas.obtener_clientes_globales()[0]
         while True:
             print("Clientes a elegir")
             for index,cliente in enumerate(clientes,start=1):
                 print(f'{index}. {cliente[1]}')
+
             opcion = int(input("Opcion:"))-1
             if opcion in range(len(clientes)):
                 return clientes[opcion]
+
             else:
                 print('Invalido')
                 presione_enter_para_continuar()
@@ -290,10 +318,17 @@ class TerminalInterface():
         
         while True:
             print("Productos a elegir")
-            productos = self.reglas.obtener_todos_productos()
+            confirmacion_productos = self.reglas.obtener_productos_globales()[0]
+
+            if confirmacion_productos == False:
+                print('No hay producutos,PRESIONE CTRL + C para salir')
+                input("")
+            
+            productos = self.reglas.obtener_productos_globales()[0]
 
             for index,producto in enumerate(productos,start=1):
                 print(f'{index}. {producto[1]}')
+
             opcion = int(input("Opcion:"))-1
 
             if opcion in productos_vendidos.keys():
@@ -304,11 +339,14 @@ class TerminalInterface():
 
             if opcion in range(len(productos)):
                 clear()
+
                 nombre_producto = productos[opcion][1]
                 id_producto = productos[opcion][0]
+
                 print(f"Producto:{nombre_producto}")
                 cantidad = int(input("Escriba la cantidad del producto vendido:"))
                 precio_unitario = float(input("Escriba el precio unitario del producto vendido($):"))
+
                 if all([self.reglas.validar_numero_entero(cantidad),
                         self.reglas.validar_numero(precio_unitario)]):
                         
@@ -317,12 +355,16 @@ class TerminalInterface():
                         'cantidad':cantidad,
                         'precio_unitario':precio_unitario
                     }
+
                     clear()
                     self.imprimir_ticket(productos_vendidos)
+
                     continuar = input("Desea Continuar registrando productos?(S/N):")
+
                     if continuar.lower() == 's':
                         clear()
-                        continue 
+                        continue
+
                     else:
                         return productos_vendidos
                 else:
@@ -336,18 +378,22 @@ class TerminalInterface():
             
     def calcular_total_ticket(self,ticket:dict):
         total = 0
+
         for producto,detalle in ticket.items():
             total += ticket[producto]['cantidad'] * ticket[producto]['precio_unitario']
+
         return total
 
     def imprimir_ticket(self,ticket:dict):
         print("="*30)
         n_prod = 1
         total_ticket = 0
+
         for producto,detalle in ticket.items():
             total_ticket += ticket[producto]['cantidad'] * ticket[producto]['precio_unitario']
             print(f'PRODUCTO N#{n_prod}\nNOMBRE:{ticket[producto]['nombre_producto']}\nCANTIDAD:{ticket[producto]['cantidad']}\nPRECIO_UNITARIO:{ticket[producto]['precio_unitario']}\nTOTAL:{ticket[producto]['precio_unitario']*ticket[producto]['cantidad']}\n')
             n_prod += 1
+
         print("-"*30)
         print(f"TOTAL VENTAS : {total_ticket}$")
         print('='*30)
@@ -355,49 +401,95 @@ class TerminalInterface():
     def elegir_estado(self):
         clear()
         carga_programa()
+
         print("Estados a elegir")
         while True:
-            estados = self.reglas.obtener_estados_de_pago()
+            estados = self.reglas.obtener_estados_de_pago_globales()
             for index,estado in enumerate(estados,start=1):
                 print(f'{index}. {estado[0]}')
+
             opcion = int(input("Escriba una opcion\n:"))-1
+
             if opcion in range(len(estados)):
                 return estados[opcion][0]
+
             else:
                 print('Invalido')
                 presione_enter_para_continuar()
                 continue
 
     def levantar_deudas(self):
-        #TODO;:
         clear()
         carga_programa()
         #El usuario ve las ventas con nombres de clientes
         #El sistema lo ve con Id's
         while True:
-            ventas_en_deuda_usuario = self.reglas.obtener_ventas_en_deuda_nombres()
-            ventas_en_deuda_sistema = self.reglas.obtener_ventas_en_deuda_ids()
+            ventas_en_deuda_usuario = self.reglas.obtener_ventas_en_deuda_globales_con_nombre()[0]
+            ventas_en_deuda_sistema = self.reglas.obtener_ventas_en_deuda_globales()[0]
+
+            if ventas_en_deuda_usuario == False:
+                print("No hay deudas pendientes. Presione CTRL+C para salir")
+                input("")
+
             for index,venta in enumerate(ventas_en_deuda_usuario,start=1):
                 print(f'{index} . {venta}')
             opcion = int(input("Opcion:"))-1
 
             if opcion in range(len(ventas_en_deuda_sistema)):
                 clear()
-                
                 presione_enter_para_continuar()
+
                 venta = Venta.desde_tupla(ventas_en_deuda_sistema[opcion])
                 venta.estado = self.elegir_estado()
-                print(ventas_en_deuda_sistema)
+
                 venta.imprimir_venta()
-                resultado,mensaje = self.reglas.actualizar_venta(venta)
+
+                resultado,mensaje = self.reglas.actualizar_venta_por_id(venta)
+
                 print(mensaje)
                 presione_enter_para_continuar()
                 break
+
             else:
                 clear()
                 print('Invalido')
                 presione_enter_para_continuar()
                 continue
+
+    def obtener_cliente_por_nombre(self):
+        clear()
+        carga_programa
+
+        nombre = input("Escriba el nombre del cliente a buscar")
+
+        busqueda_cliente = self.reglas.obtener_clientes_busqueda_por_nombre(nombre)[0]
+
+        if busqueda_cliente == None:
+            print("Clientes no encontrados")
+            presione_enter_para_continuar()
+        
+        elif busqueda_cliente[0] == None:
+            print("Clientes no encontrados")
+            presione_enter_para_continuar()
+        
+        else:    
+            clientes = self.reglas.obtener_clientes_busqueda_por_nombre(nombre)[0]
+        
+            for index,cliente in enumerate(clientes,start=1):
+                cliente = Cliente.desde_tupla()
+                print(f'{index}. {cliente.nombre},{cliente.referencia}')
+            
+            try:
+                op = int(input("Opcion:"))-1
+
+                if op in range(len(clientes)):
+                    return clientes[op]
+                
+                else:
+                    print("Opcion invalida.")
+
+            except ValueError:
+                    print("Opcion invalida.")
 
 machineLearn = MachineLearing()
 mibd = db()

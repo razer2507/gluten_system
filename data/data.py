@@ -96,24 +96,29 @@ class db():
         self.cursor.execute('''
         INSERT INTO productos(nombre,precio_costo,categoria) VALUES(?,?,?)
         ''', data)
+
         self.guardar_cambios()
 
-    def obtener_data_producto(self, id):
+    def obtener_producto_por_id(self, id):
         self.cursor.execute('SELECT * FROM productos WHERE id = ?', (id,))
+
         return self.cursor.fetchone()
 
-    def obtener_productos(self):
+    def obtener_productos_globales(self):
         self.cursor.execute('SELECT * FROM productos')
+
         return self.cursor.fetchall()
 
-    def eliminar_producto(self, producto_id: int):
+    def eliminar_producto_por_id(self, producto_id: int):
         self.cursor.execute('DELETE FROM productos WHERE id = ?', (producto_id,))
+
         self.guardar_cambios()
 
-    def actualizar_producto(self, producto_id: int, data: tuple):
+    def actualizar_producto_por_id(self, producto_id: int, data: tuple):
         self.cursor.execute('''
         UPDATE productos SET nombre = ?, precio_costo = ?, categoria = ? WHERE id = ?
         ''', (data[0], data[1], data[2],producto_id))
+
         self.guardar_cambios()
 
     # --- CRUD CLIENTES ---
@@ -121,92 +126,123 @@ class db():
         self.cursor.execute('''
         INSERT INTO clientes(nombre, referencia) VALUES (?, ?)
         ''', data)
+
         self.guardar_cambios()
 
-    def obtener_clientes(self):
+    def obtener_clientes_globales(self):
         self.cursor.execute('SELECT * FROM clientes')
+
         return self.cursor.fetchall()
     
-    def obtener_data_cliente(self,id):
+    def obtener_cliente_por_id(self,id):
         self.cursor.execute('''SELECT *FROM clientes WHERE id=?''',(id,))
+
         return self.cursor.fetchone()
 
-    def eliminar_cliente(self, cliente_id: int):
+    def eliminar_cliente_por_id(self, cliente_id: int):
         self.cursor.execute('DELETE FROM clientes WHERE id = ?', (cliente_id,))
+
         self.guardar_cambios()
 
-    def actualizar_cliente(self, cliente_id: int, data: tuple):
+    def actualizar_cliente_por_id(self, cliente_id: int, data: tuple):
         self.cursor.execute('''
         UPDATE clientes SET nombre = ?, referencia = ? WHERE id = ?
         ''', (data[0], data[1], cliente_id))
+
         self.guardar_cambios()
+
+    def obtener_clientes_busqueda_por_nombre(self,nombre):
+        self.cursor.execute('''
+        SELECT
+            *
+        FROM
+            clientes
+        WHERE 
+            nombre
+        LIKE
+            ?
+        ''',(f'%{nombre}%',))
+
+        return self.cursor.fetchall()
 
     # --- CRUD VENTAS ---
     def insertar_venta(self, data: tuple):
         self.cursor.execute('''
         INSERT INTO ventas(fecha, cliente_id, total, estado) VALUES (?, ?, ?, ?)
         ''', data)
+
         id = self.cursor.lastrowid
         self.guardar_cambios()
         return id
     
-    def obtener_data_venta(self,id):
+    def obtener_venta_por_id(self,id):
         self.cursor.execute('''SELECT *FROM ventas WHERE id=?''',(id,))
         return self.cursor.fetchone()
 
 
-    def obtener_ventas(self):
+    def obtener_ventas_globales_con_nombre(self):
         self.cursor.execute('''
                             SELECT 
-                                clientes.nombre AS nombre,
-                                clientes.referencia as referencia,
-                                ventas.total AS total,
-                                ventas.fecha as fecha
+                                clientes.nombre,
+                                clientes.referencia,
+                                ventas.total,
+                                ventas.fecha
                             FROM 
                                 ventas
                             INNER JOIN 
                                 clientes
                             ON 
                                 cliente_id = clientes.id
-                            ORDER BY fecha DESC
+                            ORDER BY 
+                                fecha DESC
                             ''')
             
         return self.cursor.fetchall()
 
-    def eliminar_venta(self, venta_id: int):
+    def eliminar_venta_por_id(self, venta_id: int):
         self.cursor.execute('DELETE FROM ventas WHERE id = ?', (venta_id,))
+
         self.guardar_cambios()
 
-    def actualizar_venta(self, venta_id: int, data: tuple):
+    def actualizar_venta_por_id(self, venta_id: int, data: tuple):
         self.cursor.execute('''
         UPDATE ventas SET fecha = ?, cliente_id = ?, total = ?, estado = ? WHERE id = ?
         ''', (data[0], data[1], data[2], data[3], venta_id))
+
         self.guardar_cambios()
 
-    def obtener_suma_ventas(self):
+    def obtener_ventas_globales_total(self):
         self.cursor.execute('''
         SELECT SUM(total) as total FROM ventas
         ''')
+
         return self.cursor.fetchone()
 
-    def obtener_ventas_en_deuda_nombres(self):
-        self.cursor.execute('''
-        SELECT ventas.fecha,clientes.nombre,ventas.total
-        FROM ventas
-        INNER JOIN clientes
-        on cliente_id = clientes.id
-        WHERE estado ='en deuda'
-        ''')
-        return self.cursor.fetchall()
-
-    def obtener_ventas_en_deuda_ids(self):
+    def obtener_ventas_en_deuda_globales(self):
         self.cursor.execute('''
         SELECT *FROM ventas
         WHERE estado = 'en deuda'
         ''')
+
         return self.cursor.fetchall()
 
-    def obtener_venta_agrupada_por_mes(self):
+    def obtener_ventas_en_deuda_globales_con_nombres(self):
+        self.cursor.execute('''
+        SELECT 
+            ventas.fecha,clientes.nombre,ventas.total
+        FROM 
+            ventas
+        INNER JOIN 
+            clientes
+        ON 
+            cliente_id = clientes.id
+        WHERE
+            estado ='en deuda'
+        ''')
+
+        return self.cursor.fetchall()
+
+    def obtener_ventas_agrupada_por_mes_total(self):
         self.cursor.execute('''
         SELECT
             strftime('%m',fecha) ,
@@ -216,14 +252,30 @@ class db():
         GROUP BY
             strftime('%m',fecha)
         ''')
+
         return self.cursor.fetchall()
 
-    def obtener_ventas_mes_actual(self):
+    def obtener_ventas_mes_actual_total(self):
         self.cursor.execute('''
-        SELECT SUM(total)
+        SELECT IFNULL(SUM(total),0)
         FROM ventas
         WHERE strftime('%Y-%m', FECHA) = strftime('%Y-%m', 'now');
         ''')
+
+        return self.cursor.fetchone()
+
+    def obtener_ventas_en_deuda_mes_actual_total(self):
+        self.cursor.execute('''
+        SELECT
+            IFNULL(SUM(total),0)
+        FROM
+            ventas
+        WHERE
+            estado = 'en deuda'
+        AND
+            strftime('%Y-%m', FECHA) = strftime('%Y-%m', 'now');
+        ''')
+    
         return self.cursor.fetchone()
 
     # --- CRUD DETALLE_VENTAS ---
@@ -231,20 +283,24 @@ class db():
         self.cursor.execute('''
         INSERT INTO detalle_ventas(venta_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?)
         ''', data)
+
         self.guardar_cambios()
 
-    def obtener_detalles_venta(self, venta_id: int):
+    def obtener_detalle_venta_por_id(self, venta_id: int):
         self.cursor.execute('SELECT * FROM detalle_ventas WHERE venta_id = ?', (venta_id,))
+
         return self.cursor.fetchall()
 
-    def eliminar_detalle_venta(self, detalle_id: int):
+    def eliminar_detalle_venta_por_id(self, detalle_id: int):
         self.cursor.execute('DELETE FROM detalle_ventas WHERE id = ?', (detalle_id,))
+
         self.guardar_cambios()
 
-    def actualizar_detalle_venta(self, venta_id: int, data: tuple):
+    def actualizar_detalle_venta_por_id(self, venta_id: int, data: tuple):
         self.cursor.execute('''
         UPDATE detalle_ventas SET venta_id = ?, producto_id = ?, total = ?, cantidad = ? WHERE id = ?
         ''', (data[0], data[1], data[2], data[3], venta_id))
+
         self.guardar_cambios()
 
     # --- CRUD GASTOS ---
@@ -252,49 +308,58 @@ class db():
         self.cursor.execute('''
         INSERT INTO gastos(fecha, categoria, monto, descripcion) VALUES (?, ?, ?, ?)
         ''', data)
+
         self.guardar_cambios()
     
-    def obtener_data_gasto(self, gasto_id):
+    def obtener_gasto_por_id(self, gasto_id):
         self.cursor.execute('SELECT * FROM gastos WHERE id = ?', (gasto_id,))
+
         return self.cursor.fetchone()
 
-    def obtener_gastos(self):
+    def obtener_gastos_globales(self):
         self.cursor.execute('SELECT * FROM gastos')
+
         return self.cursor.fetchall()
 
-    def eliminar_gasto(self, gasto_id: int):
+    def eliminar_gasto_por_id(self, gasto_id: int):
         self.cursor.execute('DELETE FROM gastos WHERE id = ?', (gasto_id,))
+
         self.guardar_cambios()
 
-    def actualizar_gasto(self, gasto_id: int, data: tuple):
+    def actualizar_gasto_por_id(self, gasto_id: int, data: tuple):
         self.cursor.execute('''
         UPDATE gastos SET fecha = ?, categoria = ?, monto = ?, descripcion = ? WHERE id = ?
         ''', (data[0], data[1], data[2], data[3], gasto_id))
+
         self.guardar_cambios()
 
-    def obtener_suma_gastos(self):
+    def obtener_gastos_globales_total(self):
         self.cursor.execute('''
         SELECT SUM(monto) AS gastos_totales
         FROM gastos
         ''')
+
         return self.cursor.fetchone() 
 
     #Estados de pago
-    def obtener_estados_de_pago(self):
+    def obtener_estados_de_pago_globales(self):
         self.cursor.execute('''
         SELECT *FROM estados
         ''')
+
         return self.cursor.fetchall()
 
     #Categorias
-    def obtener_categorias(self):
+    def obtener_categorias_globales(self):
         self.cursor.execute('''
         SELECT *FROM categorias
         ''')
+
         return self.cursor.fetchall()
 
 
     #Referencias
-    def obtener_referencias(self):
+    def obtener_referencias_globales(self):
         self.cursor.execute('''SELECT *FROM referencias''')
+
         return self.cursor.fetchall()

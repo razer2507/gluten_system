@@ -74,6 +74,7 @@ class Venta:
             total=tupla[3],
             estado=tupla[4],
         )
+        
     def imprimir_venta(self):
         print(f"date{self.fecha}\ncliente_id:{self.cliente_id}\ntotal:{self.total}\nestado:{self.estado}\nid:{self.id}")
 
