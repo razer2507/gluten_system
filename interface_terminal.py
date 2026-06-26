@@ -157,11 +157,12 @@ class TerminalInterface():
                     cantidad=ticket_venta[id_producto]['cantidad'],
                     precio_unitario=ticket_venta[id_producto]['precio_unitario']
                 )
-
                 resultado2,mensaje2 = self.reglas.insertar_detalle_venta(detalle)
-                print(f'La venta de {ticket_venta['nombre']}mensaje2')
+
+                print(f'{ticket_venta[id_producto]['nombre_producto']} registrado exitosamente.')
         else:
             print(mensaje1)
+            
 
         presione_enter_para_continuar()
 
@@ -288,15 +289,21 @@ class TerminalInterface():
 
         if confirmacion_clientes == False:
             print('No hay clientes, PRESIONE CTRL+C para salir')
-            time.sleep(100000)
+            input('')
 
         clientes = self.reglas.obtener_clientes_globales()[0]
         while True:
             print("Clientes a elegir")
             for index,cliente in enumerate(clientes,start=1):
                 print(f'{index}. {cliente[1]}')
+            print(f'0. Buscar cliente por nombre')
+        
 
             opcion = int(input("Opcion:"))-1
+
+            if opcion == -1:
+                return self.obtener_cliente_por_nombre()
+
             if opcion in range(len(clientes)):
                 return clientes[opcion]
 
@@ -331,7 +338,7 @@ class TerminalInterface():
 
             opcion = int(input("Opcion:"))-1
 
-            if opcion in productos_vendidos.keys():
+            if (opcion+1) in productos_vendidos.keys():
                 clear()
                 print("ERROR: Este producto ya ha sido registrado")
                 presione_enter_para_continuar()
@@ -457,39 +464,42 @@ class TerminalInterface():
                 continue
 
     def obtener_cliente_por_nombre(self):
-        clear()
-        carga_programa
 
-        nombre = input("Escriba el nombre del cliente a buscar")
+        #FIXME: revisar esta pingaaaaaaaaaaaaaa
+        while True:
+            clear()
+            carga_programa
 
-        busqueda_cliente = self.reglas.obtener_clientes_busqueda_por_nombre(nombre)[0]
+            nombre = input("Escriba el nombre del cliente a buscar: ")
 
-        if busqueda_cliente == None:
-            print("Clientes no encontrados")
-            presione_enter_para_continuar()
+            busqueda_cliente = self.reglas.obtener_clientes_busqueda_por_nombre(nombre)[0]
+
+            if busqueda_cliente == None:
+                print("Clientes no encontrados")
+                presione_enter_para_continuar()
         
-        elif busqueda_cliente[0] == None:
-            print("Clientes no encontrados")
-            presione_enter_para_continuar()
+            elif busqueda_cliente[0] == None:
+                print("Clientes no encontrados")
+                presione_enter_para_continuar()
         
-        else:    
-            clientes = self.reglas.obtener_clientes_busqueda_por_nombre(nombre)[0]
+            else:    
+                clientes = self.reglas.obtener_clientes_busqueda_por_nombre(nombre)[0]
         
-            for index,cliente in enumerate(clientes,start=1):
-                cliente = Cliente.desde_tupla()
-                print(f'{index}. {cliente.nombre},{cliente.referencia}')
+                for index,cliente in enumerate(clientes,start=1):
+                    cliente = Cliente.desde_tupla(cliente)
+                    print(f'{index}. {cliente.nombre},{cliente.referencia}')
             
-            try:
-                op = int(input("Opcion:"))-1
+                try:
+                    op = int(input("Opcion:"))-1
 
-                if op in range(len(clientes)):
-                    return clientes[op]
+                    if op in range(len(clientes)):
+                        return clientes[op]
                 
-                else:
-                    print("Opcion invalida.")
+                    else:
+                        print("Opcion invalida.")
 
-            except ValueError:
-                    print("Opcion invalida.")
+                except ValueError:
+                        print("Opcion invalida.")
 
 machineLearn = MachineLearing()
 mibd = db()

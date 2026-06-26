@@ -1,5 +1,5 @@
 import sqlite3
-MODO_DEV = 1
+MODO_DEV = 0
 if MODO_DEV ==1:
     nombre_db = 'gluten_pruebas.db'
 if MODO_DEV == 0:

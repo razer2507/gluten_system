@@ -184,7 +184,7 @@ class Logica:
 
         else: 
             id_retornado = self.bd.insertar_venta(venta.a_tupla())
-            return id_retornado,'Exito'
+            return True,'Exito',id_retornado
 
     def obtener_venta_por_id(self,venta:Venta):
         if not self.bd.obtener_venta_por_id(venta.id):

@@ -1,9 +1,17 @@
 import tkinter as tk
-from views.interface import App
+from data.data import db
+from logic.logic import Logica
+from ml.IA import MachineLearing
+from views.interface import InterfazGrafica
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.geometry("1000x600")
-    root.title("Gluten - Sistema")
-    app = App(root)
-    root.mainloop()
+    mi_db = db()
+    mi_IA = MachineLearing()
+    mi_logica = Logica(
+        bd=mi_db,
+        AI=mi_IA
+    )
+
+    mi_interfaz = InterfazGrafica(
+        logica=mi_logica
+    )
