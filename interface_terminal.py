@@ -120,6 +120,7 @@ class TerminalInterface():
         cliente_creado = Cliente(nombre_cliente,referencia)
         resultado,mensaje = self.reglas.insertar_cliente(cliente_creado)
 
+        
         print(mensaje)
         presione_enter_para_continuar()
 
@@ -302,6 +303,9 @@ class TerminalInterface():
             opcion = int(input("Opcion:"))-1
 
             if opcion == -1:
+                return self.obtener_cliente_por_nombre()
+            
+            if opcion == -2:
                 return self.obtener_cliente_por_nombre()
 
             if opcion in range(len(clientes)):

@@ -381,5 +381,9 @@ class Logica:
     def obtener_referencias_globales(self):
         return self.bd.obtener_referencias_globales()
 
+    #Usuarios
+    def revisar_si_credenciales_son_validas(self,usuario,clave):
+        existencia = self.bd.revisar_si_credenciales_son_validas(usuario,clave)
+        return bool(existencia)
 
 

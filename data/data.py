@@ -82,6 +82,12 @@ class db():
         CREATE TABLE IF NOT EXISTS categorias(
         nombre_categoria TEXT PRIMARY KEY)''')
 
+        self.cursor.execute('''
+        CREATE TABLE IF NOT EXISTS usuarios(
+        usuario TEXT PRIMARY KEY,
+        clave TEXT)
+        ''')
+
      
         self.guardar_cambios()
     
@@ -363,3 +369,18 @@ class db():
         self.cursor.execute('''SELECT *FROM referencias''')
 
         return self.cursor.fetchall()
+
+    #usuarios
+    def revisar_si_credenciales_son_validas(self,usuario,clave):
+        self.cursor.execute('''
+        SELECT
+            usuario,clave
+        FROM 
+            usuarios
+        WHERE 
+            usuario =?
+        AND
+            clave =?
+                                    ''',(usuario,clave))
+                                    
+        return self.cursor.fetchone()
