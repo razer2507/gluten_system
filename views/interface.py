@@ -2,6 +2,7 @@
 from logic.logic import Logica
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
+from PIL import Image
 
 class InterfazGrafica():
     def __init__(self,logica:Logica):
@@ -32,8 +33,20 @@ class InterfazGrafica():
         
 
     def construir_sidebar(self):
-        logo_label = ctk.CTkLabel(self.contenedor_sidebar, text="Gluten Full", font=("Arial", 20, "bold"))
-        logo_label.pack(pady=30, padx=20)
+        imagen_logo = ctk.CTkImage(
+            light_image=Image.open('views/assets/gluten_logo.png'),
+            dark_image=Image.open('views/assets/gluten_logo.png'),
+            size=(100,100)
+        )
+
+        self.logo_imagen_label = ctk.CTkLabel(
+            self.contenedor_sidebar,
+            image=imagen_logo,
+            text=""
+        )
+        self.logo_imagen_label.pack(pady=30,padx=20)
+
+        
 
     def togglear_sidebar(self):
         
@@ -107,6 +120,19 @@ class LoginUser():
 
         def ejecutar_menu_loguin(self):
             self.ventana_loguin = ctk.CTk()
+
+            imagen_logo = ctk.CTkImage(
+            light_image=Image.open('views/assets/gluten_logo.png'),
+            dark_image=Image.open('views/assets/gluten_logo.png'),
+            size=(150,150)
+            )
+            self.logo_imagen_label = ctk.CTkLabel(
+            self.ventana_loguin,
+            image=imagen_logo,
+            text=""
+            )
+            self.logo_imagen_label.pack(pady=30,padx=20)
+
             self.ventana_loguin.title("LOGIN")
             usuario_label = ctk.CTkLabel(self.ventana_loguin,text="Usuario")
             usuario_label.pack()
