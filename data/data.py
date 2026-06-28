@@ -171,6 +171,18 @@ class db():
 
         return self.cursor.fetchall()
 
+    def obtener_clientes_ordenados_por_nombre(self):
+        self.cursor.execute('''
+        SELECT
+            clientes.id,
+            clientes.nombre
+        FROM
+            clientes
+        ORDER BY
+            nombre
+        ASC
+        ''')
+        return self.cursor.fetchall()
     # --- CRUD VENTAS ---
     def insertar_venta(self, data: tuple):
         self.cursor.execute('''
@@ -346,6 +358,19 @@ class db():
         ''')
 
         return self.cursor.fetchone() 
+
+    #Analisis credito
+
+    def insertar_analisis_credito(self,data):
+        self.cursor.execute('''
+        INSERT INTO 
+            analisis_credito(cliente_id,venta_id,dias_en_pagar)
+        VALUES
+            (?,?,?)
+
+        ''',data)
+        
+        self.guardar_cambios()
 
     #Estados de pago
     def obtener_estados_de_pago_globales(self):

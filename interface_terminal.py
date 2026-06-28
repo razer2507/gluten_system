@@ -1,6 +1,6 @@
 from logic.logic import Logica
 from data.data import db
-from logic.models import Cliente,Producto,Venta,DetalleVentas,Gastos
+from logic.models import Cliente,Producto,Venta,DetalleVentas,Gastos,AnalisisCredito
 import sys
 import time
 import os 
@@ -20,7 +20,7 @@ def carga_programa():
     print('Cargando',end='')
     for i in carga:
         print(i,end='',flush=True)
-        time.sleep(0.5)
+        time.sleep(0.2)
     print('\n')
     clear()
 
@@ -82,7 +82,7 @@ class TerminalInterface():
                     case 2:
                         self.registrar_clientes()
                     case 3:
-                        self.administar_deudas()
+                        self.levantar_deudas()
                     case 4:
                         self.registrar_venta()
                     case 5:
@@ -163,10 +163,72 @@ class TerminalInterface():
                 print(f'{ticket_venta[id_producto]['nombre_producto']} registrado exitosamente.')
         else:
             print(mensaje1)
-            
-
         presione_enter_para_continuar()
 
+    def levantar_deudas(self):
+        clear()
+        carga_programa()
+        #El usuario ve las ventas con nombres de clientes
+        #El sistema lo ve con Id's
+        while True:
+        
+            ventas_en_deuda_usuario = self.reglas.obtener_ventas_en_deuda_globales_con_nombre()[0]
+            ventas_en_deuda_sistema = self.reglas.obtener_ventas_en_deuda_globales()[0]
+
+            if ventas_en_deuda_usuario == False:
+                print("No hay deudas pendientes. Presione CTRL+C para salir")
+                input("")
+
+            formato = "{:<20} | {:<20} | {:<20} | {:>10}"
+            print("-" * 82)  # Una línea decorativa superior
+            print(formato.format('INDEX','FECHA', 'NOMBRE', 'TOTAL'))
+            print("-" * 82)  # Línea separadora
+
+            index_venta = 0
+            for venta in ventas_en_deuda_usuario:
+                print(formato.format(str(index_venta),str(venta[0]), str(venta[1]), f"{venta[2]:.2f}"))
+                index_venta +=1
+
+            print("-" * 82)
+            opcion = int(input("Opcion:"))-1
+
+            if opcion in range(len(ventas_en_deuda_sistema)):
+                presione_enter_para_continuar()
+
+                venta = Venta.desde_tupla(ventas_en_deuda_sistema[opcion])
+                venta.estado = 'pagado'
+
+
+
+                resultado,mensaje = self.reglas.actualizar_venta_por_id(venta)
+                venta.imprimir_venta()
+                print(mensaje)
+                
+
+            
+                fecha_actual = datetime.now()
+                venta_fecha_formateada = datetime.strptime(venta.fecha, "%Y-%m-%d %H:%M:%S")
+                dias_en_pagar_int = (fecha_actual - venta_fecha_formateada).days
+                
+                
+                analisis = AnalisisCredito(
+                    cliente_id=venta.cliente_id,
+                    venta_id=venta.id,
+                    dias_en_pagar=dias_en_pagar_int
+                )
+                print(analisis.imprimir_analisis())
+                resultado2,mensaje2 = self.reglas.insertar_analisis_credito(analisis)
+                print(mensaje2)
+                presione_enter_para_continuar()
+                break
+
+            else:
+                print('Invalido')
+                presione_enter_para_continuar()
+                continue
+
+
+    '''
     def administar_deudas(self):
             while True:
                 clear()
@@ -179,7 +241,7 @@ class TerminalInterface():
                         break
                     case _:
                         print("Invalido")
-
+    '''
     def ver_ventas(self):
         clear()
         carga_programa()
@@ -429,47 +491,8 @@ class TerminalInterface():
                 presione_enter_para_continuar()
                 continue
 
-    def levantar_deudas(self):
-        clear()
-        carga_programa()
-        #El usuario ve las ventas con nombres de clientes
-        #El sistema lo ve con Id's
-        while True:
-            ventas_en_deuda_usuario = self.reglas.obtener_ventas_en_deuda_globales_con_nombre()[0]
-            ventas_en_deuda_sistema = self.reglas.obtener_ventas_en_deuda_globales()[0]
-
-            if ventas_en_deuda_usuario == False:
-                print("No hay deudas pendientes. Presione CTRL+C para salir")
-                input("")
-
-            for index,venta in enumerate(ventas_en_deuda_usuario,start=1):
-                print(f'{index} . {venta}')
-            opcion = int(input("Opcion:"))-1
-
-            if opcion in range(len(ventas_en_deuda_sistema)):
-                clear()
-                presione_enter_para_continuar()
-
-                venta = Venta.desde_tupla(ventas_en_deuda_sistema[opcion])
-                venta.estado = self.elegir_estado()
-
-                venta.imprimir_venta()
-
-                resultado,mensaje = self.reglas.actualizar_venta_por_id(venta)
-
-                print(mensaje)
-                presione_enter_para_continuar()
-                break
-
-            else:
-                clear()
-                print('Invalido')
-                presione_enter_para_continuar()
-                continue
-
     def obtener_cliente_por_nombre(self):
 
-        #FIXME: revisar esta pingaaaaaaaaaaaaaa
         while True:
             clear()
             carga_programa

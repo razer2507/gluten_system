@@ -1,5 +1,5 @@
 from data.data import db
-from logic.models import Cliente,Producto,Venta,DetalleVentas,Gastos
+from logic.models import Cliente,Producto,Venta,DetalleVentas,Gastos,AnalisisCredito
 from ml.IA import MachineLearing
 from datetime import datetime
 class Logica:
@@ -123,6 +123,22 @@ class Logica:
         else:
             self.bd.eliminar_cliente_por_id(cliente.id)
             return True,'Exito'
+
+    def obtener_clientes_ordenados_por_nombre_formato_dict(self):
+        clientes = self.bd.obtener_clientes_ordenados_por_nombre()
+        print(clientes)
+        if clientes[0] == None:
+            return False,'No hay clientes'
+
+        if clientes == None:
+            return False,'No hay clientes'
+            
+        else:
+            #Guarda a los clientes en un diccionario
+            #{'id_cliente-nombre_cliente':id}
+            #{'1-Paul':1}
+            diccionario_clientes = {f'{cliente[0]}-{cliente[1]}':cliente[0] for cliente in clientes}
+            return diccionario_clientes,'Exito'
 
     #CRUD:Productos
     def insertar_producto(self,producto:Producto):
@@ -369,6 +385,22 @@ class Logica:
 
         else:
             return 0
+
+
+    def insertar_analisis_credito(self,analisis_credito:AnalisisCredito):
+        if not self.validar_numero_entero(analisis_credito.dias_en_pagar):
+            return False,'El analisis credito no tiene un dias en pagar valido'
+
+        if not self.validar_numero_entero(analisis_credito.venta_id):
+            return False,'El analisis credito no tiene un id_venta valido'
+
+        if not self.validar_numero_entero(analisis_credito.cliente_id):
+            return False,'El analisis credito no tiene un id_cliente valido'
+
+        self.bd.insertar_analisis_credito(analisis_credito.a_tupla())
+        return True,'Exito'
+
+
     #Estados de pago
     def obtener_estados_de_pago_globales(self):
         return self.bd.obtener_estados_de_pago_globales()

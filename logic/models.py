@@ -76,7 +76,7 @@ class Venta:
         )
         
     def imprimir_venta(self):
-        print(f"date{self.fecha}\ncliente_id:{self.cliente_id}\ntotal:{self.total}\nestado:{self.estado}\nid:{self.id}")
+        print(f"{'-'*15}Venta{'-'*15}\nfecha:{self.fecha}\ncliente_id:{self.cliente_id}\ntotal:{self.total}\nestado:{self.estado}\nid:{self.id}\n{'-'*15}")
 
 class DetalleVentas:
     def __init__(self,venta_id,producto_id,cantidad,precio_unitario,id=None):
@@ -135,3 +135,28 @@ class Gastos:
             tipo=tipo
         )
         
+class AnalisisCredito:
+    def __init__(self,cliente_id,venta_id,dias_en_pagar,id=None):
+        self.cliente_id = cliente_id
+        self.venta_id = venta_id
+        self.dias_en_pagar = dias_en_pagar
+        self.id = id
+
+    def a_tupla(self):
+        return(self.cliente_id,self.venta_id,self.dias_en_pagar)
+
+    def imprimir_analisis(self):
+        print(f'{'-'*15}Analisis de deuda{'-'*15}\ncliente_id:{self.cliente_id}\nventa_id:{self.venta_id}\ndias_en_pagar:{self.dias_en_pagar}\nid:{self.id}\n{'-'*15}{'-'*15}')
+    
+    @classmethod
+    def desde_tupla(cls,tupla):
+        if not tupla:return None
+        cliente_id = tupla[0]
+        venta_id = tupla[1]
+        dias_en_pagar = tupla[2]
+
+        return cls(
+            cliente_id,
+            venta_id,
+            dias_en_pagar
+        )

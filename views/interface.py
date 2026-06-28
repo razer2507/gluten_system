@@ -5,34 +5,56 @@ from CTkMessagebox import CTkMessagebox
 from PIL import Image
 
 class InterfazGrafica():
+    #Inyecta la dependencia de la capa logica del sistema
     def __init__(self,logica:Logica):
         self.logica = logica
+        #Incializa la ventana principal
         self.ventana_principal = ctk.CTk()
         self.ventana_principal.title("GLUTEN SYSTEM (1.0)")
-
+        #Crea la el espacio(frame) en donde se construira el menu de lado
         self.contenedor_side_bar_visible = True
-        self.contenedor_sidebar = ctk.CTkFrame(self.ventana_principal,width=220,corner_radius=0)
+
+        self.contenedor_sidebar = ctk.CTkFrame(
+            self.ventana_principal,
+            width=220,
+            corner_radius=0,
+            border_color='black',
+            border_width=1)
+            
+        #Lo empaqueta en el lado izquierdo y llena todo el espacio vertical restante
         self.contenedor_sidebar.pack(fill='y',side='left')
         self.contenedor_sidebar.pack_propagate(False)
+        #Construye todo el contenido del menu de lado en el frame
         self.construir_sidebar()
 
-        self.contenedor_pantallas = ctk.CTkFrame(self.ventana_principal, fg_color="transparent")
-        self.contenedor_pantallas.pack(side='right',fill="both", expand=True, padx=20, pady=20)
-        self.pantalla_inicio()
 
+        #Construye el contenedor dinamico en donde se veran las pantallas(ventas,deudas,clientes,etc)
+        self.contenedor_pantallas = ctk.CTkFrame(
+        self.ventana_principal,
+        fg_color="transparent")
+
+        self.contenedor_pantallas.pack(
+        side='right',
+        fill="both", 
+        expand=True, 
+        padx=20, 
+        pady=20)
+
+        self.dibujar_dashboard_principal()
+
+        #Crea un diccionario que le asigna una indexacion a cada funcion para ejecutar las pantallas
         self.index_pantalla_actual = 1
         self.pantallas = {
-            1:self.pantalla_inicio,
-            2:self.pantalla_ejemplo2,
-            3:self.pantalla_ejemplo3,
-            4:self.pantalla_ejemplo4
+            1:self.dibujar_dashboard_principal,
+            2:self.dibujar_pantalla_ventas,
         }   
 
-        
+        #Crea el bucle principal (mainloop)
         self.ventana_principal.mainloop()
         
-
+    #Dibuja los elementos del sidebar en el frame
     def construir_sidebar(self):
+        #Coloca el logo de la empresa en la parte superior del sidebar
         imagen_logo = ctk.CTkImage(
             light_image=Image.open('views/assets/gluten_logo.png'),
             dark_image=Image.open('views/assets/gluten_logo.png'),
@@ -46,69 +68,197 @@ class InterfazGrafica():
         )
         self.logo_imagen_label.pack(pady=30,padx=20)
 
+        boton_pantalla_inicio = ctk.CTkButton(
+            self.contenedor_sidebar,
+            text='INICIO',
+            font=('Arial',16,'bold'),
+            command=lambda:self.cambiar_pantalla_menu_lateral(1),
+            width=10
+            )
+        boton_pantalla_inicio.pack(pady=10,padx=10)
+        
+        boton_pantalla_ventas = ctk.CTkButton(
+                self.contenedor_sidebar,
+                text='VENTAS',
+                font=('Arial',16,'bold'),
+                command=lambda:self.cambiar_pantalla_menu_lateral(2),
+                width=10
+                )
+        boton_pantalla_ventas.pack(pady=10,padx=10)
         
 
+
+    #oculta-muestra sidebar
     def togglear_sidebar(self):
         
-        if self.contenedor_side_bar_visible == True:#Entra como True
-            self.contenedor_side_bar_visible = False#Sale como false
+        if self.contenedor_side_bar_visible == True:
+            self.contenedor_side_bar_visible = False
             self.toggle_sidebar_boton.configure(text='>')
-            self.contenedor_sidebar.pack_forget()#Ejecuta la funcion de ocultacion
+            self.contenedor_sidebar.pack_forget()
        
-        else:#Entra como False
-            self.contenedor_side_bar_visible = True#Sale como True
+        else:
+            self.contenedor_side_bar_visible = True
             self.toggle_sidebar_boton.configure(text='<')
-            self.contenedor_sidebar.pack(fill='y',side='left')#Devuelve a la vida a la sidebar
+            self.contenedor_sidebar.pack(fill='y',side='left')
 
-
+    #Construye elementos que deben ser visibles en todas las paginas(como el boton para ocultar el sidebar)
     def construir_elementos_permanentes(self,frame:CTkFrame):
 
-        self.toggle_sidebar_boton = ctk.CTkButton(frame,text='<',font=("Arial", 10, "bold"),command=lambda:self.togglear_sidebar(),width=10)
-        self.toggle_sidebar_boton.pack(side="top", anchor="nw", padx=2, pady=2)
+        self.toggle_sidebar_boton = ctk.CTkButton(
+            frame,
+            text='<',
+            font=("Arial", 10, "bold"),
+            command=lambda:self.togglear_sidebar(),
+            width=10)
 
-        
-    def cambiar_pantalla(self):
-        #limpia la pantalla para cambiar a otra
-        for widget in self.contenedor_pantallas.winfo_children():
+        self.toggle_sidebar_boton.pack(
+            side="top", 
+            anchor="nw",
+            padx=2, 
+            pady=2)
+
+    #Limpia la pantalla actual y permite dibujar otra    
+    def limpiar_pantalla(self,contenedor:CtkFrame):
+
+        for widget in contenedor.winfo_children():
             widget.destroy()
-    
-        n_pantallas = len(self.pantallas)
-        print(self.index_pantalla_actual)
-        print(range(1,n_pantallas))
 
-        if self.index_pantalla_actual in range(1,n_pantallas):
-            self.index_pantalla_actual += 1
-            self.pantallas[self.index_pantalla_actual]()
-            
-        else:
-            self.index_pantalla_actual = 1
-            self.pantallas[self.index_pantalla_actual]()
 
+    #Cambia la pantalla desde el menu lateral
     def cambiar_pantalla_menu_lateral(self,index):#2
+
+        self.limpiar_pantalla(self.contenedor_pantallas)
         self.index_pantalla_actual = index
         self.pantallas[self.index_pantalla_actual]()
 
+    def construir_tarjeta(self,contenedor,titulo,valor):
+        # 1. El contenedor principal de la tarjeta
+        tarjeta_frame = ctk.CTkFrame(
+            contenedor, 
+            corner_radius=3,    # Esquinas redondeadas como en la imagen
+            border_width=2,       # Un borde fino
+            border_color="black", # Color gris claro para el borde
+            width=135,
+            height=100,
 
+            )
+        tarjeta_frame.pack(side="left",anchor='nw',padx=15, pady=15)
+        #El tamano del frame no se afectado por el ancho de su contenido
+        tarjeta_frame.pack_propagate(False)
+
+        titulo_tarjeta = ctk.CTkLabel(
+            tarjeta_frame, 
+            text=f"{titulo}", 
+            font=("Arial",20),
+            text_color="black"
+            )
+
+        #pady=(12,5) haz 12 pixeles de espacios arriba y 5 abajo
+        titulo_tarjeta.pack(anchor="w",padx=10,pady=(12,5))
+
+        valor_label = ctk.CTkLabel(
+        tarjeta_frame, 
+        text=f"{valor}", 
+        font=("Arial", 23, "bold"),
+        text_color="black"
+        )
+        valor_label.pack(anchor="w",padx=15)
+
+
+
+
+    def dibujar_dashboard_principal(self):
+        self.construir_elementos_permanentes(self.contenedor_pantallas)
+        self.construir_tarjeta(self.contenedor_pantallas,'Ventas',"147$")
+        self.construir_tarjeta(self.contenedor_pantallas,'Deudas',"47$(35%)")
+        
+
+
+    #Dibuja la pantalla de ventas en el contenedor de pantallas
+    def dibujar_pantalla_ventas(self):
+        self.construir_elementos_permanentes(self.contenedor_pantallas)
+
+        frame_botones_ventas = ctk.CTkFrame(
+            self.contenedor_pantallas,
+            border_color='black',
+            border_width=2
+        )
+        frame_botones_ventas.pack()
+
+        boton_registrar_ventas = ctk.CTkButton(
+            frame_botones_ventas,
+            text="Registrar Ventas",
+            command=lambda: self.abrir_ventana_registro_ventas()
+        )
+        boton_registrar_ventas.pack()
+
+    def abrir_ventana_registro_ventas(self):
+        ventana_registro_ventas = ctk.CTkToplevel(self.ventana_principal)
+
+        frame_formulario = ctk.CTkFrame(
+            ventana_registro_ventas,
+            border_width=2,
+            border_color='black'
+        )
+
+        frame_formulario.pack()
+
+
+        label_fecha = ctk.CTkLabel(
+            frame_formulario,
+            text='FECHA'
+        )
+        label_fecha.pack()
+
+        entry_fecha = ctk.CTkEntry(
+            frame_formulario
+        )
+        entry_fecha.pack()
+
+
+        label_cliente = ctk.CTkLabel(
+            frame_formulario,
+            text='CLIENTE'
+        )
+        label_cliente.pack()
+
+
+        clientes = self.logica.obtener_clientes_ordenados_por_nombre_formato_dict()[0]
+        clientes_nombres = list(clientes.keys())
+        selector_cliente = ctk.CTkComboBox(
+            frame_formulario,
+            values = clientes_nombres,
+            width=150,
+            state='normal'
+        )
+        selector_cliente.pack(anchor='w',padx=10,pady=10)
+
+        def recoger_datos():
+            #Recoger el id del cliente
+            nombre_elegido = selector_cliente.get()
+            id_cliente = clientes[nombre_elegido]
+            print(f'nombre cliente {nombre_elegido} id: {id_cliente}')
+        
+
+        boton_registrar = ctk.CTkButton(
+            frame_formulario,
+            text="Registrar",
+            command=lambda:recoger_datos()
+        )
+        boton_registrar.pack()
+
+        
     
-    def pantalla_inicio(self):
-        self.construir_elementos_permanentes(self.contenedor_pantallas)
-    
-    def pantalla_ejemplo2(self):
+    def dibujar_pantalla_deudas(self):
         self.construir_elementos_permanentes(self.contenedor_pantallas)
 
-    def pantalla_ejemplo3(self):
+    def dibujar_pantalla_productos(self):
         self.construir_elementos_permanentes(self.contenedor_pantallas)
 
-    def pantalla_ejemplo4(self):
+    def dibujar_pantalla_analiticas(self):
         self.construir_elementos_permanentes(self.contenedor_pantallas)
 
-    def obtener_credenciales_usuario(self,user_entry:CTkEntry,clave_entry:CTkEntry):
-
-        usuario = user_entry.get()
-        clave = clave_entry.get()
-
-        return usuario,clave
-    
+  
 
 
 class LoginUser():
