@@ -15,9 +15,9 @@ if __name__ == "__main__":
         AI=mi_IA
     )
 
-    mi_loguin = LoginUser(mi_logica)
+    mi_login = LoginUser(mi_logica)
     
-    if mi_loguin.verificado == True:
+    if mi_login.verificado == True:
         mi_interfaz = InterfazGrafica(
         logica=mi_logica
         )

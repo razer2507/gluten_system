@@ -3,6 +3,7 @@ from logic.logic import Logica
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 from PIL import Image
+from tkcalendar import Calendar
 
 class InterfazGrafica():
     #Inyecta la dependencia de la capa logica del sistema
@@ -164,6 +165,10 @@ class InterfazGrafica():
         )
         valor_label.pack(anchor="w",padx=15)
 
+        
+        
+
+
 
 
 
@@ -195,32 +200,92 @@ class InterfazGrafica():
     def abrir_ventana_registro_ventas(self):
         ventana_registro_ventas = ctk.CTkToplevel(self.ventana_principal)
 
+        titulo_ventana_ventas = ctk.CTkLabel(
+            ventana_registro_ventas,
+            text="REGISTAR VENTA",
+            font=('Arial',25,'bold'))
+        titulo_ventana_ventas.pack(pady=10,padx=10)
+
         frame_formulario = ctk.CTkFrame(
             ventana_registro_ventas,
             border_width=2,
             border_color='black'
         )
-
-        frame_formulario.pack()
+        frame_formulario.pack(padx=10,pady=10)
 
 
         label_fecha = ctk.CTkLabel(
             frame_formulario,
             text='FECHA'
         )
-        label_fecha.pack()
+        label_fecha.pack(padx=10,pady=10)
+
+        frame_fecha = ctk.CTkFrame(
+        frame_formulario,
+        fg_color='transparent'
+        )
+        frame_fecha.pack(pady=5)
 
         entry_fecha = ctk.CTkEntry(
-            frame_formulario
+            frame_fecha
         )
-        entry_fecha.pack()
+        entry_fecha.pack(side='left',padx=(0,5))
+        
+        
 
+        def elegir_fecha():
+            ventana_fecha = ctk.CTkToplevel(ventana_registro_ventas)
+            ventana_fecha.grab_set()
+            resultado = {'fecha':None}
+            cal = Calendar(
+                ventana_fecha,
+                selectmode='day',
+                date_pattern='yyyy-mm-dd',
+                background="#2B2B2B", 
+                foreground="white",
+                selectbackground="#1F6AA5", 
+                headersbackground="#1F6AA5",
+                normalbackground="#2B2B2B", 
+                normalforeground="white")
+    
+            cal.pack(padx=20,pady=20)
+
+            def confirmar():
+                resultado['fecha'] = cal.get_date()
+
+                if resultado['fecha']:
+                    print(resultado['fecha'])
+                    entry_fecha.insert(0,resultado['fecha'])
+                    ventana_fecha.destroy()
+            
+            boton_elegir_fecha = ctk.CTkButton(
+                ventana_fecha,
+                text='Registrar fecha',
+                command=confirmar
+            )
+            
+            boton_elegir_fecha.pack(pady=10,padx=10)
+
+
+        boton_fecha = ctk.CTkButton(
+            frame_fecha,
+            text="V",
+            command=elegir_fecha,
+            fg_color='gray',
+            width=3,
+            height=3,
+            border_width=2,
+            border_color='gray'
+        )
+
+        boton_fecha.pack(side='left')
+        
 
         label_cliente = ctk.CTkLabel(
             frame_formulario,
             text='CLIENTE'
         )
-        label_cliente.pack()
+        label_cliente.pack(padx=10,pady=10)
 
 
         clientes = self.logica.obtener_clientes_ordenados_por_nombre_formato_dict()[0]
@@ -229,23 +294,41 @@ class InterfazGrafica():
             frame_formulario,
             values = clientes_nombres,
             width=150,
-            state='normal'
+            state='readonly'
         )
-        selector_cliente.pack(anchor='w',padx=10,pady=10)
+        selector_cliente.pack(padx=10,pady=10)
+
+        label_referencia = ctk.CTkLabel(
+            frame_formulario,
+            text='Referencia'
+        )
+        label_referencia.pack(pady=10,padx=10)
+
+        referencias = self.logica.obtener_referencias_globales()
+
+        entry_referencia = ctk.CTkComboBox(
+            frame_formulario,
+            values= [referencia[0] for referencia in referencias],
+            width=150,
+            state='readonly'
+        )
+        entry_referencia.pack(padx=10,pady=10)
+
+
+
 
         def recoger_datos():
             #Recoger el id del cliente
             nombre_elegido = selector_cliente.get()
             id_cliente = clientes[nombre_elegido]
-            print(f'nombre cliente {nombre_elegido} id: {id_cliente}')
-        
+            #TODO:completar formulario de pantalla de ventas
 
         boton_registrar = ctk.CTkButton(
             frame_formulario,
             text="Registrar",
             command=lambda:recoger_datos()
         )
-        boton_registrar.pack()
+        boton_registrar.pack(padx=10,pady=10)
 
         
     
@@ -306,7 +389,6 @@ class LoginUser():
             self.ventana_loguin.mainloop()
         
         def validar_credenciales(self,usuario_entry,clave_entry):
-            print(usuario_entry.get(),clave_entry.get())
             usuario = usuario_entry.get()
             clave = clave_entry.get()
 

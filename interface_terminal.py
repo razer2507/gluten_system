@@ -505,7 +505,7 @@ class TerminalInterface():
                 print("Clientes no encontrados")
                 presione_enter_para_continuar()
         
-            elif busqueda_cliente[0] == None:
+            elif busqueda_cliente[0] == False:
                 print("Clientes no encontrados")
                 presione_enter_para_continuar()
         

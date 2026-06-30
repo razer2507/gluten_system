@@ -140,6 +140,7 @@ class Logica:
             diccionario_clientes = {f'{cliente[0]}-{cliente[1]}':cliente[0] for cliente in clientes}
             return diccionario_clientes,'Exito'
 
+
     #CRUD:Productos
     def insertar_producto(self,producto:Producto):
         if not self.validar_texto(producto.nombre):
