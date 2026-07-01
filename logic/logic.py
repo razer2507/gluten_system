@@ -126,7 +126,6 @@ class Logica:
 
     def obtener_clientes_ordenados_por_nombre_formato_dict(self):
         clientes = self.bd.obtener_clientes_ordenados_por_nombre()
-        print(clientes)
         if clientes[0] == None:
             return False,'No hay clientes'
 
@@ -184,7 +183,7 @@ class Logica:
             return True,'Exito'
         
     def eliminar_producto_por_id(self,producto:Producto):
-        data_producto = self.bd.obtener.obtener_producto_por_id(producto.id)
+        data_producto = self.bd.obtener_producto_por_id(producto.id)
 
         if not data_producto:
             return False,'El producto no existe'
@@ -192,6 +191,16 @@ class Logica:
         else:
             self.bd.eliminar_producto_por_id(producto.id)
             return True,'Exito'
+    
+    def obtener_productos_en_ordenados_por_nombre_formato_dict(self):
+        productos = self.bd.obtener_productos_globales()
+
+        if not isinstance(productos,list):
+            return False,'No hay productos'
+
+        else:
+            diccionario_productos = {f'{producto[0]}-{producto[1]}':producto[0] for producto in productos}
+            return diccionario_productos
 
    
     #CRUD:ventas
@@ -280,22 +289,24 @@ class Logica:
         return predict
 
     def obtener_ventas_mes_actual_total(self):
-        ventas_mes_actual = self.bd.obtener_ventas_mes_actual_total()
-        monto_ventas_mes_actual = ventas_mes_actual[0]
-
+        fecha_actual_str = datetime.now().strftime("%Y-%m")
+        ventas_mes_actual = self.bd.obtener_ventas_mes_actual_total(fecha_actual_str)
+        
         if not ventas_mes_actual:
             return 0,'No hay ventas en este mes'
-
+        
         else:
+            monto_ventas_mes_actual = ventas_mes_actual[0]
             return monto_ventas_mes_actual,'Exito'
 
     def obtener_ventas_en_deuda_mes_actual_total(self):
-        ventas_en_deuda_mes_actual = self.bd.obtener_ventas_en_deuda_mes_actual_total()
+        fecha_actual_str = datetime.now().strftime("%Y-%m")
+        ventas_en_deuda_mes_actual = self.bd.obtener_ventas_en_deuda_mes_actual_total(fecha_actual_str)
         
         if not ventas_en_deuda_mes_actual:
-            return 0,'No hay deudas en este mes'
+            return (0,),'No hay deudas en este mes'
         if ventas_en_deuda_mes_actual[0] == None:
-            return 0
+            return (0,),'No hay deudas en este mes'
 
         else:
             return ventas_en_deuda_mes_actual,'Exito'
@@ -322,7 +333,7 @@ class Logica:
             return self.bd.obtener_detalle_venta_por_id(detalle_venta.venta_id)
 
     def actualizar_detalle_venta_por_id(self,detalle_venta:DetalleVentas):
-        if not self.bd.obtener_detalle_venta_por_id:
+        if not self.bd.obtener_detalle_venta_por_id(detalle_venta.venta_id):
             return False,'El detalle_venta no existe'
 
         if not self.validar_numero(detalle_venta.precio_unitario):
@@ -332,7 +343,7 @@ class Logica:
             return False,'El detalle_venta no tiene una cantidad valida'
 
         else:
-            self.bd.actualizar_detalle_venta_por_id(detalle_venta.id,detalle_venta.a.tupla())
+            self.bd.actualizar_detalle_venta_por_id(detalle_venta.id,detalle_venta.a_tupla())
             return True,'Exito'
 
     def eliminar_detalle_venta_por_id(self,detalle_venta:DetalleVentas):
@@ -353,11 +364,11 @@ class Logica:
             return True
     
     def obtener_gasto_por_id(self,gasto:Gastos):
-        if not self.db.obtener_gasto_por_id(gasto.id):
+        if not self.bd.obtener_gasto_por_id(gasto.id):
             return False,"El gasto no existe"
 
         else:
-            return self.obtener_gasto_por_id(gasto.id)
+            return self.bd.obtener_gasto_por_id(gasto.id), 'Exito'
     
     def actualizar_gasto(self,gasto:Gastos):
         if not self.bd.obtener_gasto_por_id(gasto.id):
@@ -405,6 +416,10 @@ class Logica:
     #Estados de pago
     def obtener_estados_de_pago_globales(self):
         return self.bd.obtener_estados_de_pago_globales()
+
+    def obtener_estados_de_pago_globales_en_lista(self):
+        estados_de_pago = self.bd.obtener_estados_de_pago_globales()
+        return[estado[0] for estado in estados_de_pago]
 
     #Categorias
     def obtener_categorias_globales(self):

@@ -273,16 +273,16 @@ class db():
 
         return self.cursor.fetchall()
 
-    def obtener_ventas_mes_actual_total(self):
+    def obtener_ventas_mes_actual_total(self, mes_actual):
         self.cursor.execute('''
         SELECT IFNULL(SUM(total),0)
         FROM ventas
-        WHERE strftime('%Y-%m', FECHA) = strftime('%Y-%m', 'now');
-        ''')
+        WHERE strftime('%Y-%m', FECHA) = ?;
+        ''', (mes_actual,))
 
         return self.cursor.fetchone()
 
-    def obtener_ventas_en_deuda_mes_actual_total(self):
+    def obtener_ventas_en_deuda_mes_actual_total(self, mes_actual):
         self.cursor.execute('''
         SELECT
             IFNULL(SUM(total),0)
@@ -291,8 +291,8 @@ class db():
         WHERE
             estado = 'en deuda'
         AND
-            strftime('%Y-%m', FECHA) = strftime('%Y-%m', 'now');
-        ''')
+            strftime('%Y-%m', FECHA) = ?;
+        ''', (mes_actual,))
     
         return self.cursor.fetchone()
 

@@ -37,10 +37,24 @@ class TerminalInterface():
         while True:
             mes_actual = datetime.today().month
             prediccion = self.reglas.obtener_prediccion_ventas_mes_actual()
-            ventas_actuales_mes = self.reglas.obtener_ventas_mes_actual_total()[0]
-            deudas_totales_mes = self.reglas.obtener_ventas_en_deuda_mes_actual_total()[0][0]
-            gananacia_real = (ventas_actuales_mes-deudas_totales_mes)
-            porcentaje_deudas_mes = (deudas_totales_mes/ventas_actuales_mes)*100
+            
+            # Obtener datos de forma segura
+            res_ventas = self.reglas.obtener_ventas_mes_actual_total()
+            res_deudas = self.reglas.obtener_ventas_en_deuda_mes_actual_total()
+
+            # Procesar ventas
+            ventas_actuales_mes = res_ventas[0] if isinstance(res_ventas, tuple) else res_ventas
+            
+            # Procesar deudas
+            if isinstance(res_deudas, tuple) and len(res_deudas) > 0 and isinstance(res_deudas[0], tuple):
+                 deudas_totales_mes = res_deudas[0][0]
+            elif isinstance(res_deudas, tuple):
+                 deudas_totales_mes = res_deudas[0]
+            else:
+                 deudas_totales_mes = res_deudas
+
+            gananacia_real = (ventas_actuales_mes - deudas_totales_mes)
+
             try:
                 clear()
                 carga_programa()
@@ -51,8 +65,8 @@ class TerminalInterface():
                 print(f"FECHA:{datetime.today().strftime('%d/%m/%Y')}")
                 print('#####################################')
                 print(f'''1-Registrar Productos\n2-Registrar Clientes\n3-Administar-Deudas\n4-Registrar Ventas\n5-Ver Ventas\n0-Salir\n{'='*38}''')
-                print(f'VENTAS DEL MES ACTUAL:{(ventas_actuales_mes)}$')
-                print(f'DEUDAS DEL MES ACTUAL:{(deudas_totales_mes)}$({int(porcentaje_deudas_mes)}%)')
+                print(f'VENTAS DEL MES ACTUAL:{ventas_actuales_mes}$')
+                print(f'DEUDAS DEL MES ACTUAL:{deudas_totales_mes}$')
                 print(f'GANANCIA MENSUAL REAL: {int(gananacia_real)}$')
                 print(f'PROYECCION MENSUAL DE VENTAS POR IA:{int(prediccion)}$')
                 print("="*38)

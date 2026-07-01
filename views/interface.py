@@ -4,6 +4,7 @@ import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 from PIL import Image
 from tkcalendar import Calendar
+from tkinter import simpledialog
 
 class InterfazGrafica():
     #Inyecta la dependencia de la capa logica del sistema
@@ -186,18 +187,40 @@ class InterfazGrafica():
         frame_botones_ventas = ctk.CTkFrame(
             self.contenedor_pantallas,
             border_color='black',
-            border_width=2
+            border_width=3,
+            width=450,
+            height=600
         )
-        frame_botones_ventas.pack()
+        frame_botones_ventas.pack(side='top',padx=10,pady=10)
+        frame_botones_ventas.pack_propagate(False)
+
+        label_titulo_ventas = ctk.CTkLabel(
+            frame_botones_ventas,
+            text='VENTAS',
+            font=('Arial',20,'bold')
+        )
+        label_titulo_ventas.pack(side='top',pady=10,padx=10)
 
         boton_registrar_ventas = ctk.CTkButton(
             frame_botones_ventas,
             text="Registrar Ventas",
+            font=('Arial',15,'bold'),
+            width=300,
             command=lambda: self.abrir_ventana_registro_ventas()
         )
-        boton_registrar_ventas.pack()
+        boton_registrar_ventas.pack(padx=10,pady=10)
 
     def abrir_ventana_registro_ventas(self):
+      
+        #TODO: falta completar el registro de la venta
+        venta = {
+            '''
+            'fecha':,
+            'cliente_id':,
+            'total':,
+            'estado':
+            '''
+        }
         ventana_registro_ventas = ctk.CTkToplevel(self.ventana_principal)
 
         titulo_ventana_ventas = ctk.CTkLabel(
@@ -209,16 +232,19 @@ class InterfazGrafica():
         frame_formulario = ctk.CTkFrame(
             ventana_registro_ventas,
             border_width=2,
-            border_color='black'
+            border_color='black',
+            height=500,
+            width=300
         )
         frame_formulario.pack(padx=10,pady=10)
-
+        frame_formulario.pack_propagate(False)
 
         label_fecha = ctk.CTkLabel(
             frame_formulario,
-            text='FECHA'
+            text='FECHA',
+            font=('Arial',15,'bold')
         )
-        label_fecha.pack(padx=10,pady=10)
+        label_fecha.pack(padx=10,pady=10,side='top')
 
         frame_fecha = ctk.CTkFrame(
         frame_formulario,
@@ -254,7 +280,6 @@ class InterfazGrafica():
                 resultado['fecha'] = cal.get_date()
 
                 if resultado['fecha']:
-                    print(resultado['fecha'])
                     entry_fecha.insert(0,resultado['fecha'])
                     ventana_fecha.destroy()
             
@@ -283,11 +308,12 @@ class InterfazGrafica():
 
         label_cliente = ctk.CTkLabel(
             frame_formulario,
-            text='CLIENTE'
+            text='CLIENTE',
+            font=('Arial',15,'bold')
         )
-        label_cliente.pack(padx=10,pady=10)
+        label_cliente.pack(padx=10,pady=10,side='top')
 
-
+        
         clientes = self.logica.obtener_clientes_ordenados_por_nombre_formato_dict()[0]
         clientes_nombres = list(clientes.keys())
         selector_cliente = ctk.CTkComboBox(
@@ -298,40 +324,225 @@ class InterfazGrafica():
         )
         selector_cliente.pack(padx=10,pady=10)
 
-        label_referencia = ctk.CTkLabel(
+        
+        label_productos = ctk.CTkLabel(
             frame_formulario,
-            text='Referencia'
+            text='Productos',
+            font=('Arial',15,'bold')
         )
-        label_referencia.pack(pady=10,padx=10)
+        label_productos.pack()
+        frame_productos = ctk.CTkFrame(
+        frame_formulario,
+        fg_color='transparent'
+        )
+        frame_productos.pack(pady=5)
+        entry_productos = ctk.CTkEntry(
+            frame_productos
+        )
+        entry_productos.pack(side='left',padx=(0,5))
+        
 
-        referencias = self.logica.obtener_referencias_globales()
 
-        entry_referencia = ctk.CTkComboBox(
+        def construir_ticket():
+            productos = self.logica.obtener_productos_en_ordenados_por_nombre_formato_dict()
+            ticket_venta = {
+
+            }
+
+            ventana_construir_ticket = ctk.CTkToplevel(
+                master=ventana_registro_ventas
+            )
+
+            #la hacemos modal
+            ventana_construir_ticket.grab_set()
+
+            frame_formulario = ctk.CTkFrame(
+                ventana_construir_ticket,
+                width=400,
+                height=600,
+                border_color='black',
+                border_width=2
+            )
+            frame_formulario.pack(side='top',pady=10,padx=10)
+            frame_formulario.pack_propagate(False)
+
+            label_producto = ctk.CTkLabel(
+                frame_formulario,
+                text='PRODUCTO',
+                font=('Arial',15,'bold')
+            )
+            label_producto.pack(pady=10,padx=10,side='top')
+
+            entry_producto = ctk.CTkComboBox(
+                master=frame_formulario,
+                values=list(productos),
+                width=300
+            )
+            entry_producto.pack()
+
+            label_cantidad = ctk.CTkLabel(
+                frame_formulario,
+                text='CANTIDAD',
+                font=('Arial',15,'bold')
+            )
+            label_cantidad.pack(pady=10,padx=10,side='top')
+
+            
+            entry_cantidad = ctk.CTkEntry(
+                master=frame_formulario,
+                placeholder_text='ingrese cantidad...',
+                width=300
+            )
+            entry_cantidad.pack()
+            label_cantidad = ctk.CTkLabel(
+                frame_formulario,
+                text='CANTIDAD',
+                font=('Arial',15,'bold')
+            )
+
+            label_precio_unit = ctk.CTkLabel(
+                frame_formulario,
+                text='PRECIO UNITARIO',
+                font=('Arial',15,'bold')
+            )
+
+            label_precio_unit.pack(pady=10,padx=10,side='top')
+
+            entry_precio_unit = ctk.CTkEntry(
+                master=frame_formulario,
+                placeholder_text='ingrese precio unitario...',
+                width=300
+            )
+            entry_precio_unit.pack()
+
+            label_total = ctk.CTkLabel(
+                frame_formulario,
+                text='TOTAL',
+                font=('Arial',15,'bold')
+            )
+
+            label_total.pack(pady=10,padx=10,side='top')
+
+            entry_total = ctk.CTkEntry(
+                master=frame_formulario,
+                placeholder_text='el total se calculara automaticamente...',
+                width=300
+            )
+            entry_total.pack()
+
+            boton_registrar = ctk.CTkButton(
+                master=frame_formulario,
+                text='REGISTRAR',
+                font=('Arial',15,'bold')
+            )
+            boton_registrar.pack(pady=10,padx=10)
+            
+            boton_salir = ctk.CTkButton(
+                master=frame_formulario,
+                text='SALIR',
+                font=('Arial',15,'bold'),
+                fg_color='red',
+                command=lambda:ventana_construir_ticket.destroy()
+            )
+            boton_salir.pack(pady=10,padx=10)
+
+            def registrar_producto_vendido():
+                try:
+                    print("funcion ejecutada")
+                    id_producto = int(productos[entry_producto.get()])
+                    cantidad = int(entry_cantidad.get())
+                    precio_unit = float(entry_precio_unit.get())
+                    total = cantidad * precio_unit
+        
+                    validacion = [
+                        self.logica.validar_numero(precio_unit),
+                        self.logica.validar_numero_entero(cantidad)
+                    ]
+                    print(validacion)
+                    if all(validacion):
+                        
+                        ticket_venta[id_producto] = {
+                            'cantidad':cantidad,
+                            'precio_unit':precio_unit,
+                            'total':total
+                        }
+                        boton_registrar.configure(
+                            fg_color='green',
+                            text='Registrado exitosamente',
+                        )
+                        entry_cantidad.delete(0,'end')
+                        entry_precio_unit.delete(0,'end')
+
+
+
+                    else:
+                         CTkMessagebox(ventana_construir_ticket,title='ERROR',message='Datos no validados',icon='cancel')
+                         boton_registrar.configure(
+                            fg_color='red',
+                            text='ERROR'
+                         )
+                except ValueError:
+                    CTkMessagebox(ventana_construir_ticket,title='ERROR',message='Datos invalidos',icon='cancel')
+
+            boton_registrar.configure(
+                command=registrar_producto_vendido
+            )
+                    
+            
+
+            
+
+
+
+        boton_productos = ctk.CTkButton(
+            frame_productos,
+            text="V",
+            command=construir_ticket,
+            fg_color='gray',
+            width=3,
+            height=3,
+            border_width=2,
+            border_color='gray'
+        )
+
+        boton_productos.pack(side='left')
+        
+
+        label_estado = ctk.CTkLabel(
             frame_formulario,
-            values= [referencia[0] for referencia in referencias],
+            text='Estado',
+            font=('Arial',15,'bold')
+        )
+        label_estado.pack()
+        
+        estados_pago = self.logica.obtener_estados_de_pago_globales_en_lista()
+        selector_estado = ctk.CTkComboBox(
+            frame_formulario,
+            values = estados_pago,
             width=150,
             state='readonly'
         )
-        entry_referencia.pack(padx=10,pady=10)
+        selector_estado.pack(padx=10,pady=10)
+        
 
-
-
+        
 
         def recoger_datos():
             #Recoger el id del cliente
             nombre_elegido = selector_cliente.get()
             id_cliente = clientes[nombre_elegido]
-            #TODO:completar formulario de pantalla de ventas
 
         boton_registrar = ctk.CTkButton(
             frame_formulario,
             text="Registrar",
-            command=lambda:recoger_datos()
+            command=lambda:recoger_datos
         )
         boton_registrar.pack(padx=10,pady=10)
 
+            
+
+
         
-    
     def dibujar_pantalla_deudas(self):
         self.construir_elementos_permanentes(self.contenedor_pantallas)
 

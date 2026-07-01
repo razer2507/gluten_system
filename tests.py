@@ -7,4 +7,3 @@ ml = MachineLearing()
 basedatos = db()
 logic = Logica(basedatos,ml)
 InterfazGrafica(logic)
-
